@@ -1,0 +1,29 @@
+export const SAMPLE_MESSY_GST_CSV = `M/S GLOBAL ENTERPRISES INDIA PVT LTD - GST SALES & REVENUE REGISTER (FY 2025-26)
+Report Generated On: 2026-03-31 | Confidential Internal Audit Document
+
+Invoice No.,Invoice Date,Customer Name,GSTIN / PAN,Zone / Region,Taxable Value (₹),GST Amount,Total Sales Amount,Payment Status
+INV-2025-001,15-04-2025,Apex Tech Logistics,27AABCA1234F1ZB,North Zone,"₹ 1,45,000.00","₹ 26,100.00","₹ 1,71,100.00",Paid
+INV-2025-002,2025/04/18,Bright Light Retail,29XYZPA9876G2ZC,South Zone,"85,400.00","15,372.00","100,772.00",Pending
+INV-2025-003,22-Apr-2025,Crestline Engineering,07AAACC3344D1Z5,West Zone,"₹2,10,000.00","₹37,800.00","₹2,47,800.00",Paid
+INV-2025-004,05/02/2025,Delta Pharma Labs,33BBBDD5566E1Z9,East Zone,"$1,200.00","$216.00","$1,416.00",Overdue
+
+INV-2025-005,12-05-2025,Apex Tech Logistics,27AABCA1234F1ZB,North Zone,"1,80,000.00","32,400.00","2,12,400.00",Paid
+INV-2025-006,2025-05-28,Echo Wave Solutions,19CCCEE7788F1Z2,North Zone,"₹ 95,000.00","17,100.00","₹ 1,12,100.00",Paid
+INV-2025-007,04-Jun-2025,Bright Light Retail,29XYZPA9876G2ZC,South Zone,"1,15,000.00","20,700.00","1,35,700.00",Pending
+INV-2025-008,18/06/2025,Falcon Heavy Motors,06DDDFF9900G1Z4,West Zone,"3,50,000.00","63,000.00","4,13,000.00",Paid
+INV-2025-009,02-Jul-2025,Crestline Engineering,07AAACC3344D1Z5,West Zone,"2,40,000.00","43,200.00","2,83,200.00",Paid
+INV-2025-010,2025/07/15,Grand Hotel & Resort,27EEEGG1122H1Z6,South Zone,"75,000.00","13,500.00","88,500.00",Paid
+
+INV-2025-011,10-Aug-2025,Delta Pharma Labs,33BBBDD5566E1Z9,East Zone,"1,60,000.00","28,800.00","1,88,800.00",Pending
+INV-2025-012,25-08-2025,Horizon Traders,09FFFHH3344I1Z8,North Zone,"2,25,000.00","40,500.00","2,65,500.00",Paid
+INV-2025-013,2025-09-05,Apex Tech Logistics,27AABCA1234F1ZB,North Zone,"2,90,000.00","52,200.00","3,42,200.00",Paid
+INV-2025-014,14-Oct-2025,Bright Light Retail,29XYZPA9876G2ZC,South Zone,"1,30,000.00","23,400.00","1,53,400.00",Overdue
+INV-2025-015,01/11/2025,Crestline Engineering,07AAACC3344D1Z5,West Zone,"3,10,000.00","55,800.00","3,65,800.00",Paid
+INV-2025-016,19-Nov-2025,Echo Wave Solutions,19CCCEE7788F1Z2,North Zone,"1,05,000.00","18,900.00","1,23,900.00",Paid
+INV-2025-017,2025/12/08,Falcon Heavy Motors,06DDDFF9900G1Z4,West Zone,"4,20,000.00","75,600.00","4,95,600.00",Paid
+INV-2025-018,22-Jan-2026,Grand Hotel & Resort,27EEEGG1122H1Z6,South Zone,"90,000.00","16,200.00","1,06,200.00",Pending
+INV-2025-019,10-Feb-2026,Horizon Traders,09FFFHH3344I1Z8,North Zone,"2,60,000.00","46,800.00","3,06,800.00",Paid
+INV-2025-020,05-Mar-2026,Delta Pharma Labs,33BBBDD5566E1Z9,East Zone,"1,95,000.00","35,100.00","2,30,100.00",Paid
+
+TOTAL / GRAND SUMMARY,,,,,"₹ 38,70,800.00","₹ 6,96,744.00","₹ 45,67,544.00",
+`;

@@ -1,0 +1,6 @@
+{
+  "name": "DashForge",
+  "description": "Turn messy spreadsheets into decision-ready executive dashboards in minutes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
