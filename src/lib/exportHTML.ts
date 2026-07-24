@@ -145,30 +145,29 @@ export function exportDashboardToHTML(
     let sortColumnIndex = -1;
     let sortDirection = 'asc';
     let currentPage = 1;
-    const PAGE_SIZE = 25;
-
-    // Helper: Parse Date Flexible
+    const PAGE_SIZE = 25;    // Helper: Parse Date Flexible (Local Midnight)
     function parseFlexibleDate(val) {
-      if (!val) return null;
+      if (val === null || val === undefined || val === '') return null;
       const str = String(val).trim();
+      if (!str) return null;
       
-      // 1. DD-MMM-YYYY e.g. 22-Apr-2025
-      const ddmmmyyyy = /^(\\d{1,2})[-/\\s]([A-Za-z]{3})[-/\\s](\\d{4})$/.exec(str);
+      // 1. DD-MMM-YYYY e.g. 22-Apr-2025 or 05-Apr-2026
+      const ddmmmyyyy = /^(\\d{1,2})[-/\\s]([A-Za-z]{3})[-/\\s](\\d{4})$/i.exec(str);
       if (ddmmmyyyy) {
         const day = parseInt(ddmmmyyyy[1], 10);
         const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
         const month = months.indexOf(ddmmmyyyy[2].toLowerCase());
         const year = parseInt(ddmmmyyyy[3], 10);
-        if (month !== -1) return new Date(year, month, day);
+        if (month !== -1) return new Date(year, month, day, 0, 0, 0, 0);
       }
 
-      // 2. YYYY-MM-DD
+      // 2. YYYY-MM-DD or YYYY/MM/DD
       const yyyymmdd = /^(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})$/.exec(str);
       if (yyyymmdd) {
-        return new Date(parseInt(yyyymmdd[1], 10), parseInt(yyyymmdd[2], 10) - 1, parseInt(yyyymmdd[3], 10));
+        return new Date(parseInt(yyyymmdd[1], 10), parseInt(yyyymmdd[2], 10) - 1, parseInt(yyyymmdd[3], 10), 0, 0, 0, 0);
       }
 
-      // 3. DD-MM-YYYY or DD/MM/YYYY
+      // 3. DD-MM-YYYY or DD/MM/YYYY or MM/DD/YYYY
       const ddmmyyyy = /^(\\d{1,2})[-/](\\d{1,2})[-/](\\d{4})$/.exec(str);
       if (ddmmyyyy) {
         const p1 = parseInt(ddmmyyyy[1], 10);
@@ -177,12 +176,31 @@ export function exportDashboardToHTML(
         let day = p1, month = p2 - 1;
         if (p1 > 12) { day = p1; month = p2 - 1; }
         else if (p2 > 12) { day = p2; month = p1 - 1; }
-        return new Date(year, month, day);
+        if (month >= 0 && month < 12 && day >= 1 && day <= 31) {
+          return new Date(year, month, day, 0, 0, 0, 0);
+        }
       }
 
       const parsed = Date.parse(str);
-      if (!isNaN(parsed)) return new Date(parsed);
+      if (!isNaN(parsed)) {
+        const d = new Date(parsed);
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+      }
       return null;
+    }
+
+    function formatDateToYYYYMMDD(d) {
+      if (!d) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    function formatDateForDisplay(d) {
+      if (!d) return '';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
     }
 
     // Helper: Clean Number
@@ -212,13 +230,28 @@ export function exportDashboardToHTML(
       // Date Column Filters
       const dateCols = COLUMNS.filter(c => c.confirmedType === 'date');
       dateCols.forEach(col => {
+        let minD = null;
+        let maxD = null;
+
+        RAW_ROWS.forEach(r => {
+          const d = parseFlexibleDate(r[col.index]);
+          if (d) {
+            if (!minD || d.getTime() < minD.getTime()) minD = d;
+            if (!maxD || d.getTime() > maxD.getTime()) maxD = d;
+          }
+        });
+
+        const minAttr = minD ? formatDateToYYYYMMDD(minD) : '';
+        const maxAttr = maxD ? formatDateToYYYYMMDD(maxD) : '';
+        const rangeHint = (minD && maxD) ? ' (' + formatDateForDisplay(minD) + ' – ' + formatDateForDisplay(maxD) + ')' : '';
+
         const wrapper = document.createElement('div');
         wrapper.className = 'space-y-1';
         wrapper.innerHTML = \`
-          <label class="block text-xs font-bold text-slate-700">\${escapeHtml(col.name)} Range</label>
+          <label class="block text-xs font-bold text-slate-700">\${escapeHtml(col.name)} Range<span class="text-[10px] font-normal text-slate-400">\${rangeHint}</span></label>
           <div class="grid grid-cols-2 gap-2">
-            <input type="date" id="date-min-\${col.index}" class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl w-full focus:outline-none focus:border-indigo-500 bg-white" />
-            <input type="date" id="date-max-\${col.index}" class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl w-full focus:outline-none focus:border-indigo-500 bg-white" />
+            <input type="date" id="date-min-\${col.index}" \${minAttr ? 'min="' + minAttr + '"' : ''} \${maxAttr ? 'max="' + maxAttr + '"' : ''} class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl w-full focus:outline-none focus:border-indigo-500 bg-white" placeholder="From" />
+            <input type="date" id="date-max-\${col.index}" \${minAttr ? 'min="' + minAttr + '"' : ''} \${maxAttr ? 'max="' + maxAttr + '"' : ''} class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-xl w-full focus:outline-none focus:border-indigo-500 bg-white" placeholder="To" />
           </div>
         \`;
         container.appendChild(wrapper);
@@ -256,6 +289,7 @@ export function exportDashboardToHTML(
       // Attach Event Listeners
       container.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('change', applyFilters);
+        el.addEventListener('input', applyFilters);
       });
 
       document.getElementById('reset-filters-btn').addEventListener('click', () => {
@@ -283,16 +317,22 @@ export function exportDashboardToHTML(
         for (let col of dateCols) {
           const minEl = document.getElementById('date-min-' + col.index);
           const maxEl = document.getElementById('date-max-' + col.index);
+
+          const cellD = parseFlexibleDate(row[col.index]);
+
           if (minEl && minEl.value) {
-            const minD = new Date(minEl.value);
-            const cellD = parseFlexibleDate(row[col.index]);
-            if (cellD && cellD < minD) return false;
+            const parts = minEl.value.split('-');
+            if (parts.length === 3) {
+              const minD = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 0, 0, 0, 0);
+              if (!cellD || cellD.getTime() < minD.getTime()) return false;
+            }
           }
           if (maxEl && maxEl.value) {
-            const maxD = new Date(maxEl.value);
-            maxD.setHours(23, 59, 59, 999);
-            const cellD = parseFlexibleDate(row[col.index]);
-            if (cellD && cellD > maxD) return false;
+            const parts = maxEl.value.split('-');
+            if (parts.length === 3) {
+              const maxD = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 23, 59, 59, 999);
+              if (!cellD || cellD.getTime() > maxD.getTime()) return false;
+            }
           }
         }
 
@@ -437,10 +477,12 @@ export function exportDashboardToHTML(
       filteredRows.forEach(row => {
         let key = row[groupIdx] !== null && row[groupIdx] !== undefined ? String(row[groupIdx]).trim() : '(Blank)';
         
+        let dateObj = null;
         // Date formatting if group column is date
         if (groupCol && groupCol.confirmedType === 'date') {
           const d = parseFlexibleDate(key);
           if (d) {
+            dateObj = d;
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             const bucket = card.timeBucket || 'daily';
             if (bucket === 'daily') {
@@ -455,7 +497,7 @@ export function exportDashboardToHTML(
 
         const numVal = parseCleanNumber(row[metricIdx]);
         if (!map.has(key)) {
-          map.set(key, { count: 0, sum: 0, values: [] });
+          map.set(key, { count: 0, sum: 0, values: [], dateObj });
         }
         const item = map.get(key);
         item.count += 1;
@@ -467,10 +509,15 @@ export function exportDashboardToHTML(
         let val = v.sum;
         if (agg === 'avg') val = v.count > 0 ? v.sum / v.count : 0;
         else if (agg === 'count') val = v.count;
-        return { label: k, value: val };
+        return { label: k, value: val, dateObj: v.dateObj };
       });
 
-      if (card.topN && card.topN > 0 && card.type !== 'area' && card.type !== 'line') {
+      if (groupCol && groupCol.confirmedType === 'date') {
+        items.sort((a, b) => {
+          if (a.dateObj && b.dateObj) return a.dateObj.getTime() - b.dateObj.getTime();
+          return a.label.localeCompare(b.label);
+        });
+      } else if (card.topN && card.topN > 0 && card.type !== 'area' && card.type !== 'line') {
         items.sort((a, b) => b.value - a.value);
         items = items.slice(0, card.topN);
       }
@@ -591,6 +638,14 @@ export function exportDashboardToHTML(
           const numA = parseCleanNumber(valA);
           const numB = parseCleanNumber(valB);
           return sortDirection === 'asc' ? numA - numB : numB - numA;
+        }
+
+        if (colMeta && colMeta.confirmedType === 'date') {
+          const dateA = parseFlexibleDate(valA);
+          const dateB = parseFlexibleDate(valB);
+          if (dateA && dateB) {
+            return sortDirection === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
+          }
         }
 
         const strA = String(valA || '').toLowerCase();
